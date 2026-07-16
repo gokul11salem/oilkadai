@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Oil Kadai — Billing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --orange:#f97316;
+    --orange-dark:#ea580c;
+    --orange-light:#fff1e6;
+    --ink:#161616;
+    --gray:#6b7280;
+    --border:#e8e4df;
+    --bg-soft:#faf9f7;
+    --white:#ffffff;
+    --danger:#dc2626;
+    --good:#16a34a;
+    --radius:14px;
+    --shadow: 0 1px 2px rgba(20,20,20,0.04), 0 6px 20px rgba(20,20,20,0.05);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--white);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,.display{font-family:'Poppins',sans-serif;}
+  button{font-family:inherit;}
+  #app{
+    max-width:880px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--white);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    border-left:1px solid var(--border);
+    border-right:1px solid var(--border);
+  }
+  @media (min-width:900px){
+    body{background:var(--bg-soft);}
+    #app{box-shadow:var(--shadow); margin-top:0;}
+  }
+
+  /* Header */
+  .brand-header{
+    padding:28px 24px 18px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+  }
+  .brand-title{
+    font-size:34px;
+    font-weight:800;
+    color:var(--ink);
+    letter-spacing:-0.02em;
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .brand-title .drop{
+    font-size:30px;
+  }
+  .brand-sub{
+    margin:6px 0 0;
+    color:var(--gray);
+    font-size:14px;
+    font-weight:500;
+  }
+
+  /* Tabs */
+  .tabbar{
+    display:flex;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    background:var(--white);
+    z-index:20;
+  }
+  .tab{
+    flex:1;
+    padding:14px 4px;
+    text-align:center;
+    font-size:13px;
+    font-weight:600;
+    color:var(--gray);
+    background:none;
+    border:none;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .tab .icon{font-size:18px;}
+  .tab.active{color:var(--orange-dark); border-bottom-color:var(--orange);}
+
+  main{
+    flex:1;
+    padding:20px 20px 100px;
+  }
+
+  /* Generic elements */
+  .section-title{
+    font-size:19px;
+    font-weight:700;
+    margin:0 0 14px;
+    color:var(--ink);
+  }
+  .card{
+    background:var(--white);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+  }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:12px 18px;
+    border-radius:10px;
+    border:none;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:transform .05s ease, opacity .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--orange); color:#fff;}
+  .btn-primary:hover{background:var(--orange-dark);}
+  .btn-outline{background:#fff; color:var(--orange-dark); border:1.5px solid var(--orange);}
+  .btn-ghost{background:var(--orange-light); color:var(--orange-dark);}
+  .btn-danger{background:#fff; color:var(--danger); border:1.5px solid var(--danger);}
+  .btn-block{width:100%;}
+  .btn-sm{padding:8px 12px; font-size:13px; border-radius:8px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  input[type=text],input[type=number],input[type=password],input[type=tel]{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--border);
+    border-radius:10px;
+    font-size:15px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fff;
+  }
+  input:focus{outline:2px solid var(--orange); outline-offset:1px; border-color:var(--orange);}
+  label{font-size:13px; font-weight:600; color:var(--gray); display:block; margin-bottom:6px;}
+  .field{margin-bottom:14px;}
+
+  /* Dashboard */
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:22px;}
+  .stat-card{
+    background:var(--orange-light);
+    border-radius:var(--radius);
+    padding:18px 16px;
+    border:1px solid #ffe3c9;
+  }
+  .stat-label{font-size:12.5px; font-weight:700; color:var(--orange-dark); text-transform:uppercase; letter-spacing:.04em;}
+  .stat-value{font-size:26px; font-weight:800; margin-top:6px; color:var(--ink);}
+  .stat-sub{font-size:12.5px; color:var(--gray); margin-top:2px;}
+
+  .recent-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:12px 0; border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .recent-row:last-child{border-bottom:none;}
+  .recent-items{color:var(--gray); font-size:12.5px; margin-top:2px;}
+  .empty-state{
+    text-align:center; padding:40px 16px; color:var(--gray);
+  }
+  .empty-state .big{font-size:38px; margin-bottom:8px;}
+
+  /* Product grid */
+  .product-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+  }
+  @media(min-width:600px){
+    .product-grid{grid-template-columns:repeat(3,1fr);}
+  }
+  .p-card{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    position:relative;
+    background:#fff;
+  }
+  .p-img{
+    width:72px;height:72px;border-radius:50%;
+    background:var(--orange-light);
+    display:flex;align-items:center;justify-content:center;
+    font-size:32px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .p-img img{width:100%;height:100%;object-fit:cover;}
+  .p-brand{font-weight:700; font-size:13.5px; line-height:1.2;}
+  .p-variant{font-size:12px; color:var(--gray); margin-top:1px;}
+  .p-price{font-weight:800; color:var(--orange-dark); font-size:15px; margin:8px 0 10px;}
+  .p-add{
+    width:100%;
+    padding:9px;
+    border-radius:9px;
+    border:none;
+    background:var(--orange);
+    color:#fff;
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .p-qty-row{
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%; background:var(--orange-light); border-radius:9px; padding:4px;
+  }
+  .p-qty-row button{
+    width:28px;height:28px;border-radius:7px;border:none;background:#fff;color:var(--orange-dark);
+    font-weight:800;font-size:15px;cursor:pointer;
+  }
+  .p-qty-row .qn{font-weight:800; font-size:14px;}
+
+  /* Floating cart bar */
+  .cart-fab{
+    position:sticky;
+    bottom:14px;
+    left:0;right:0;
+    margin:16px auto 0;
+    max-width:840px;
+    background:var(--ink);
+    color:#fff;
+    border-radius:14px;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 8px 24px rgba(0,0,0,0.22);
+    cursor:pointer;
+    border:none;
+    width:calc(100% - 0px);
+  }
+  .cart-fab .l{font-size:14px; font-weight:600;}
+  .cart-fab .r{font-size:14px; font-weight:800; color:var(--orange); display:flex; align-items:center; gap:6px;}
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(20,15,10,0.45);
+    display:flex; align-items:flex-end; justify-content:center;
+    z-index:100;
+  }
+  @media(min-width:640px){
+    .overlay{align-items:center;}
+  }
+  .modal{
+    background:#fff;
+    width:100%;
+    max-width:520px;
+    max-height:92vh;
+    overflow-y:auto;
+    border-radius:20px 20px 0 0;
+    padding:22px 22px 26px;
+  }
+  @media(min-width:640px){
+    .modal{border-radius:20px;}
+  }
+  .modal-head{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px;
+  }
+  .modal-head h2{margin:0; font-size:20px;}
+  .close-x{
+    background:var(--bg-soft); border:none; width:32px;height:32px;border-radius:50%;
+    font-size:16px; cursor:pointer; color:var(--gray);
+  }
+
+  .cart-line{
+    display:flex; align-items:center; gap:10px;
+    padding:12px 0; border-bottom:1px solid var(--border);
+  }
+  .cart-line .ci-img{width:44px;height:44px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;}
+  .cart-line .ci-img img{width:100%;height:100%;object-fit:cover;}
+  .cart-line .ci-name{font-weight:700; font-size:14px;}
+  .cart-line .ci-price{color:var(--gray); font-size:12.5px;}
+  .cart-line .ci-controls{margin-left:auto; display:flex; align-items:center; gap:6px;}
+  .cart-line .ci-controls button{width:26px;height:26px;border-radius:7px;border:1px solid var(--border);background:#fff;font-weight:800;cursor:pointer;}
+  .cart-line .ci-remove{background:none;border:none;color:var(--danger);font-size:12px;font-weight:700;cursor:pointer;margin-left:8px;}
+
+  .total-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 0; font-size:16px; font-weight:800;
+    border-top:2px solid var(--ink); margin-top:6px;
+  }
+
+  /* Payment screen */
+  .qr-wrap{
+    display:flex; flex-direction:column; align-items:center;
+    padding:18px 0 8px;
+  }
+  #qrcode{
+    padding:12px; background:#fff; border:1.5px solid var(--border); border-radius:16px;
+  }
+  .pay-amount{font-size:30px; font-weight:800; margin:14px 0 2px;}
+  .pay-label{color:var(--gray); font-size:13px;}
+  .bank-card{
+    background:var(--bg-soft); border-radius:14px; padding:16px; margin-top:16px;
+  }
+  .bank-row{display:flex; justify-content:space-between; padding:7px 0; font-size:14px; border-bottom:1px dashed var(--border);}
+  .bank-row:last-child{border-bottom:none;}
+  .bank-row .k{color:var(--gray);}
+  .bank-row .v{font-weight:700;}
+
+  /* Settings / PIN */
+  .pin-dots{display:flex; gap:14px; justify-content:center; margin:22px 0;}
+  .pin-dot{width:16px;height:16px;border-radius:50%; border:2px solid var(--orange); background:transparent;}
+  .pin-dot.filled{background:var(--orange);}
+  .keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; max-width:280px; margin:0 auto;}
+  .keypad button{
+    padding:18px 0; font-size:20px; font-weight:700; border-radius:14px; border:1px solid var(--border);
+    background:#fff; cursor:pointer; color:var(--ink);
+  }
+  .keypad button:active{background:var(--orange-light);}
+  .keypad .kp-empty{visibility:hidden;}
+
+  .settings-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0; border-bottom:1px solid var(--border);
+  }
+  .settings-row:last-child{border-bottom:none;}
+  .settings-row .name{font-weight:700; font-size:14.5px;}
+  .settings-row .desc{font-size:12.5px; color:var(--gray); margin-top:2px;}
+
+  .manage-p-row{
+    display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border);
+  }
+  .manage-p-row .mp-img{width:46px;height:46px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0; cursor:pointer;}
+  .manage-p-row .mp-img img{width:100%;height:100%;object-fit:cover;}
+  .manage-p-row .mp-info{flex:1;}
+  .manage-p-row .mp-name{font-weight:700; font-size:14px;}
+  .manage-p-row input[type=number]{width:90px; padding:8px; font-size:13px;}
+
+  .toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:#fff; padding:12px 20px; border-radius:10px;
+    font-size:14px; font-weight:600; z-index:200; box-shadow:0 6px 20px rgba(0,0,0,0.25);
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.good{background:var(--good);}
+  .toast.danger{background:var(--danger);}
+
+  .hist-day{margin-bottom:18px;}
+  .hist-day-title{font-size:12.5px; font-weight:700; color:var(--gray); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px;}
+  .hist-row{
+    padding:12px; border:1px solid var(--border); border-radius:12px; margin-bottom:8px;
+  }
+  .hist-row .top{display:flex; justify-content:space-between; font-weight:700; font-size:14.5px;}
+  .hist-row .items{color:var(--gray); font-size:12.5px; margin-top:4px;}
+  .hist-row .time{color:var(--gray); font-size:12px;}
+
+  .badge-count{
+    background:var(--orange); color:#fff; font-size:11px; font-weight:800;
+    border-radius:20px; padding:1px 7px; margin-left:4px;
+  }
+  .link-btn{background:none;border:none;color:var(--orange-dark);font-weight:700;font-size:13px;cursor:pointer; padding:0;}
+  hr.sep{border:none; border-top:1px solid var(--border); margin:18px 0;}
+  .muted{color:var(--gray); font-size:13px;}
+  .add-photo-input{display:none;}
+  .lock-icon{font-size:44px; text-align:center; margin-bottom:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="brand-header">
+    <h1 class="brand-title"><span class="drop">🛢️</span> Oil Kadai</h1>
+    <p class="brand-sub">Part of Great Global Synergy Sdn Bhd</p>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <button class="tab" data-tab="dashboard"><span class="icon">📊</span>Dashboard</button>
+    <button class="tab" data-tab="shop"><span class="icon">🛒</span>Shop</button>
+    <button class="tab" data-tab="history"><span class="icon">📜</span>History</button>
+    <button class="tab" data-tab="settings"><span class="icon">⚙️</span>Settings</button>
+  </div>
+
+  <main id="main"></main>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+/* ================= DATA LAYER ================= */
+const STORE_KEY = 'oilkadai_data_v1';
+
+function defaultProducts(){
+  return [
+    {id:'pe-1l',   brand:'Periyuk Emas', sub:'Premium Palm Oil - CP6 Grade', variant:'1L',       price:8.50,  img:null},
+    {id:'pe-1_2l', brand:'Periyuk Emas', sub:'Premium Palm Oil - CP6 Grade', variant:'1.2L',     price:9.80,  img:null},
+    {id:'pe-2l',   brand:'Periyuk Emas', sub:'Premium Palm Oil - CP6 Grade', variant:'2L',       price:16.00, img:null},
+    {id:'pe-5l',   brand:'Periyuk Emas', sub:'Premium Palm Oil - CP6 Grade', variant:'5L',       price:38.00, img:null},
+    {id:'pe-jc',   brand:'Periyuk Emas', sub:'Premium Palm Oil - CP6 Grade', variant:'Jerrican', price:120.00,img:null},
+    {id:'aladin-1l',  brand:'Aladin',  sub:'Cooking Oil', variant:'1L', price:8.00, img:null},
+    {id:'alibaba-1l', brand:'Alibaba', sub:'Cooking Oil', variant:'1L', price:7.80, img:null},
+    {id:'mayil-1l',   brand:'Mayil',   sub:'Lighting / Lamp Oil', variant:'1L', price:6.50, img:null}
+  ];
+}
+
+function defaultState(){
+  return {
+    products: defaultProducts(),
+    sales: [],
+    settings: {
+      pin: '1234',
+      bank: {
+        bankName: 'Maybank',
+        accName: 'Great Global Synergy Sdn Bhd',
+        accNo: '5123 4567 8901'
+      }
+    }
+  };
+}
+
+let state = load();
+let cart = {}; // productId -> qty  (session cart, not persisted)
+let unlocked = false;
+let pinBuffer = '';
+let pinMode = 'unlock'; // 'unlock' or 'setnew'
+let activeTab = 'dashboard';
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if(!parsed.products || !parsed.sales || !parsed.settings) return defaultState();
+    return parsed;
+  }catch(e){
+    return defaultState();
+  }
+}
+function save(){
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+function fmt(n){
+  return 'RM ' + Number(n).toFixed(2);
+}
+function productById(id){
+  return state.products.find(p=>p.id===id);
+}
+
+/* ================= TOAST ================= */
+function toast(msg, type){
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' '+type : '');
+  el.textContent = msg;
+  root.innerHTML = '';
+  root.appendChild(el);
+  setTimeout(()=>{ el.remove(); }, 2400);
+}
+
+/* ================= TABS ================= */
+document.getElementById('tabbar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.tab');
+  if(!btn) return;
+  goTab(btn.dataset.tab);
+});
+function goTab(tab){
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===tab));
+  render();
+}
+
+/* ================= RENDER ROUTER ================= */
+function render(){
+  const main = document.getElementById('main');
+  if(activeTab==='dashboard') main.innerHTML = renderDashboard();
+  else if(activeTab==='shop') main.innerHTML = renderShop();
+  else if(activeTab==='history') main.innerHTML = renderHistory();
+  else if(activeTab==='settings') main.innerHTML = renderSettings();
+  attachDynamicHandlers();
+}
+
+/* ================= DASHBOARD ================= */
+function isSameDay(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function isSameMonth(a,b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth();
+}
+function renderDashboard(){
+  const now = new Date();
+  const today = state.sales.filter(s=>isSameDay(new Date(s.ts), now));
+  const month = state.sales.filter(s=>isSameMonth(new Date(s.ts), now));
+  const todayTotal = today.reduce((a,s)=>a+s.total,0);
+  const monthTotal = month.reduce((a,s)=>a+s.total,0);
+  const recent = [...state.sales].sort((a,b)=>b.ts-a.ts).slice(0,5);
+
+  return `
+    <div class="section-title">Today &amp; This Month</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Today's Sales</div>
+        <div class="stat-value">${fmt(todayTotal)}</div>
+        <div class="stat-sub">${today.length} order${today.length===1?'':'s'}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">This Month</div>
+        <div class="stat-value">${fmt(monthTotal)}</div>
+        <div class="stat-sub">${month.length} order${month.length===1?'':'s'}</div>
+      </div>
+    </div>
+    <div class="section-title">Recent Orders</div>
+    <div class="card">
+      ${recent.length===0 ? `
+        <div class="empty-state">
+          <div class="big">🧾</div>
+          No orders yet. Go to <b>Shop</b> to make your first sale.
+        </div>
+      ` : recent.map(s=>`
+        <div class="recent-row">
+          <div>
+            <div>${new Date(s.ts).toLocaleString('en-MY',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+            <div class="recent-items">${s.items.map(i=>i.brand+' '+i.variant+' x'+i.qty).join(', ')}</div>
+          </div>
+          <div><b>${fmt(s.total)}</b></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+/* ================= SHOP ================= */
+function renderShop(){
+  const cartCount = Object.values(cart).reduce((a,b)=>a+b,0);
+  const cartTotal = Object.entries(cart).reduce((sum,[id,qty])=>{
+    const p = productById(id); return sum + (p?p.price*qty:0);
+  },0);
+
+  const grid = state.products.map(p=>{
+    const qty = cart[p.id] || 0;
+    const imgHtml = p.img ? `<img src="${p.img}" alt="${p.brand}">` : '🛢️';
+    return `
+      <div class="p-card">
+        <div class="p-img">${imgHtml}</div>
+        <div class="p-brand">${p.brand}</div>
+        <div class="p-variant">${p.variant}</div>
+        <div class="p-price">${fmt(p.price)}</div>
+        ${qty===0 ? `
+          <button class="p-add" data-add="${p.id}">Add to Cart</button>
+        ` : `
+          <div class="p-qty-row">
+            <button data-dec="${p.id}">−</button>
+            <span class="qn">${qty}</span>
+            <button data-inc="${p.id}">+</button>
+          </div>
+        `}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="section-title">Products</div>
+    <div class="product-grid">${grid}</div>
+    ${cartCount>0 ? `
+      <button class="cart-fab" id="open-cart">
+        <span class="l">🛒 ${cartCount} item${cartCount===1?'':'s'} in cart</span>
+        <span class="r">${fmt(cartTotal)} ›</span>
+      </button>
+    ` : ''}
+  `;
+}
+
+function attachDynamicHandlers(){
+  document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click', ()=>{
+    cart[b.dataset.add] = 1; render();
+  }));
+  document.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click', ()=>{
+    cart[b.dataset.inc] = (cart[b.dataset.inc]||0)+1; render();
+  }));
+  document.querySelectorAll('[data-dec]').forEach(b=>b.addEventListener('click', ()=>{
+    const id = b.dataset.dec;
+    cart[id] = (cart[id]||0)-1;
+    if(cart[id]<=0) delete cart[id];
+    render();
+  }));
+  const openCartBtn = document.getElementById('open-cart');
+  if(openCartBtn) openCartBtn.addEventListener('click', openCartModal);
+
+  // settings dynamic
+  const pinForm = document.getElementById('pin-submit');
+  // (pin keypad handled via delegated listener below, set once)
+
+  attachSettingsHandlers();
+}
+
+/* ================= CART / CHECKOUT MODAL ================= */
+function cartLines(){
+  return Object.entries(cart).map(([id,qty])=>{
+    const p = productById(id);
+    return {p, qty};
+  }).filter(l=>l.p);
+}
+function cartGrandTotal(){
+  return cartLines().reduce((s,l)=>s+l.p.price*l.qty,0);
+}
+
+function openCartModal(){
+  renderModal(`
+    <div class="modal-head">
+      <h2>Order Summary</h2>
+      <button class="close-x" id="modal-close">✕</button>
+    </div>
+    <div id="cart-lines">${renderCartLines()}</div>
+    <div class="total-row"><span>Total</span><span>${fmt(cartGrandTotal())}</span></div>
+    <button class="btn btn-primary btn-block" id="go-payment" style="margin-top:14px;" ${cartLines().length===0?'disabled':''}>Proceed to Payment</button>
+  `);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('go-payment').addEventListener('click', openPaymentModal);
+  bindCartLineEvents();
+}
+function renderCartLines(){
+  const lines = cartLines();
+  if(lines.length===0){
+    return `<div class="empty-state"><div class="big">🛒</div>Your cart is empty.</div>`;
+  }
+  return lines.map(l=>`
+    <div class="cart-line" data-line="${l.p.id}">
+      <div class="ci-img">${l.p.img?`<img src="${l.p.img}">`:'🛢️'}</div>
+      <div>
+        <div class="ci-name">${l.p.brand} ${l.p.variant}</div>
+        <div class="ci-price">${fmt(l.p.price)} each</div>
+      </div>
+      <div class="ci-controls">
+        <button data-cdec="${l.p.id}">−</button>
+        <span>${l.qty}</span>
+        <button data-cinc="${l.p.id}">+</button>
+        <button class="ci-remove" data-cdel="${l.p.id}">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+function bindCartLineEvents(){
+  const container = document.getElementById('cart-lines');
+  if(!container) return;
+  container.querySelectorAll('[data-cinc]').forEach(b=>b.addEventListener('click',()=>{
+    cart[b.dataset.cinc]=(cart[b.dataset.cinc]||0)+1; refreshCartModal();
+  }));
+  container.querySelectorAll('[data-cdec]').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.cdec; cart[id]=(cart[id]||0)-1; if(cart[id]<=0) delete cart[id]; refreshCartModal();
+  }));
+  container.querySelectorAll('[data-cdel]').forEach(b=>b.addEventListener('click',()=>{
+    delete cart[b.dataset.cdel]; refreshCartModal();
+  }));
+}
+function refreshCartModal(){
+  document.getElementById('cart-lines').innerHTML = renderCartLines();
+  document.querySelector('.total-row span:last-child').textContent = fmt(cartGrandTotal());
+  const goBtn = document.getElementById('go-payment');
+  goBtn.disabled = cartLines().length===0;
+  bindCartLineEvents();
+}
+
+/* ================= PAYMENT MODAL ================= */
+function openPaymentModal(){
+  const total = cartGrandTotal();
+  const bank = state.settings.bank;
+  renderModal(`
+    <div class="modal-head">
+      <h2>Payment</h2>
+      <button class="close-x" id="modal-close">✕</button>
+    </div>
+    <div class="qr-wrap">
+      <div id="qrcode"></div>
+      <div class="pay-amount">${fmt(total)}</div>
+      <div class="pay-label">Scan to pay via DuitNow / bank transfer</div>
+    </div>
+    <div class="bank-card">
+      <div class="bank-row"><span class="k">Bank</span><span class="v">${bank.bankName}</span></div>
+      <div class="bank-row"><span class="k">Account Name</span><span class="v">${bank.accName}</span></div>
+      <div class="bank-row"><span class="k">Account No.</span><span class="v">${bank.accNo}</span></div>
+      <div class="bank-row"><span class="k">Amount</span><span class="v">${fmt(total)}</span></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="confirm-payment" style="margin-top:18px;">✓ Payment Received — Complete Sale</button>
+    <button class="btn btn-outline btn-block" id="back-to-cart" style="margin-top:10px;">Back to Order Summary</button>
+  `);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('back-to-cart').addEventListener('click', openCartModal);
+  document.getElementById('confirm-payment').addEventListener('click', completeSale);
+
+  const qrText = `Pay ${fmt(total)} to ${bank.accName} | ${bank.bankName} ${bank.accNo}`;
+  setTimeout(()=>{
+    try{
+      new QRCode(document.getElementById('qrcode'), {
+        text: qrText, width:180, height:180,
+        colorDark:"#161616", colorLight:"#ffffff"
+      });
+    }catch(e){ /* library may fail offline */ 
+      document.getElementById('qrcode').innerHTML = '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#999;text-align:center;padding:10px;">QR unavailable offline</div>';
+    }
+  }, 30);
+}
+
+function completeSale(){
+  const lines = cartLines();
+  if(lines.length===0) return;
+  const sale = {
+    id: 'S' + Date.now(),
+    ts: Date.now(),
+    items: lines.map(l=>({productId:l.p.id, brand:l.p.brand, variant:l.p.variant, qty:l.qty, price:l.p.price})),
+    total: cartGrandTotal()
+  };
+  state.sales.push(sale);
+  save();
+  cart = {};
+  closeModal();
+  toast('Sale completed ✓', 'good');
+  goTab('dashboard');
+}
+
+/* ================= MODAL HELPERS ================= */
+function renderModal(html){
+  document.getElementById('modal-root').innerHTML = `<div class="overlay" id="overlay"><div class="modal">${html}</div></div>`;
+  document.getElementById('overlay').addEventListener('click', (e)=>{
+    if(e.target.id==='overlay') closeModal();
+  });
+}
+function closeModal(){
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+/* ================= HISTORY ================= */
+function renderHistory(){
+  const cutoff = Date.now() - 30*24*60*60*1000;
+  const sales = state.sales.filter(s=>s.ts>=cutoff).sort((a,b)=>b.ts-a.ts);
+
+  const groups = {};
+  sales.forEach(s=>{
+    const d = new Date(s.ts);
+    const key = d.toLocaleDateString('en-MY',{weekday:'short', day:'2-digit', month:'short', year:'numeric'});
+    groups[key] = groups[key] || [];
+    groups[key].push(s);
+  });
+
+  const body = Object.keys(groups).length===0 ? `
+    <div class="empty-state"><div class="big">📜</div>No sales recorded in the past 30 days yet.</div>
+  ` : Object.entries(groups).map(([day, list])=>`
+      <div class="hist-day">
+        <div class="hist-day-title">${day}</div>
+        ${list.map(s=>`
+          <div class="hist-row">
+            <div class="top"><span>${s.items.map(i=>i.brand+' '+i.variant+' x'+i.qty).join(', ')}</span><span>${fmt(s.total)}</span></div>
+            <div class="time">${new Date(s.ts).toLocaleTimeString('en-MY',{hour:'2-digit',minute:'2-digit'})}</div>
+          </div>
+        `).join('')}
+      </div>
+  `).join('');
+
+  return `
+    <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Sales History <span class="muted">(last 30 days)</span></span>
+    </div>
+    <button class="btn btn-ghost btn-block" id="download-csv" style="margin-bottom:18px;" ${sales.length===0?'disabled':''}>⬇ Download CSV</button>
+    ${body}
+  `;
+}
+
+function downloadCSV(){
+  const cutoff = Date.now() - 30*24*60*60*1000;
+  const sales = state.sales.filter(s=>s.ts>=cutoff).sort((a,b)=>a.ts-b.ts);
+  const rows = [['Transaction ID','Date','Time','Items','Total (RM)']];
+  sales.forEach(s=>{
+    const d = new Date(s.ts);
+    rows.push([
+      s.id,
+      d.toLocaleDateString('en-MY'),
+      d.toLocaleTimeString('en-MY'),
+      s.items.map(i=>`${i.brand} ${i.variant} x${i.qty}`).join('; '),
+      s.total.toFixed(2)
+    ]);
+  });
+  const csv = rows.map(r=>r.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `oil-kadai-sales-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ================= SETTINGS / PIN ================= */
+function renderSettings(){
+  if(!unlocked){
+    pinBuffer = '';
+    pinMode = 'unlock';
+    return renderPinScreen('Enter Admin PIN to access Settings');
+  }
+  return renderSettingsPanel();
+}
+
+function renderPinScreen(title){
+  return `
+    <div class="lock-icon">🔒</div>
+    <div class="section-title" style="text-align:center;">${title}</div>
+    <div class="pin-dots" id="pin-dots">${pinDotsHtml()}</div>
+    <div class="keypad" id="keypad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-key="${n}">${n}</button>`).join('')}
+      <button class="kp-empty"></button>
+      <button data-key="0">0</button>
+      <button data-key="back">⌫</button>
+    </div>
+    <p class="muted" style="text-align:center;margin-top:18px;">Contact your shop admin if you don't know the PIN.</p>
+  `;
+}
+function pinDotsHtml(){
+  let html = '';
+  for(let i=0;i<4;i++){
+    html += `<div class="pin-dot ${i<pinBuffer.length?'filled':''}"></div>`;
+  }
+  return html;
+}
+
+function attachSettingsHandlers(){
+  const keypad = document.getElementById('keypad');
+  if(keypad){
+    keypad.querySelectorAll('[data-key]').forEach(b=>b.addEventListener('click', ()=>{
+      const k = b.dataset.key;
+      if(k==='back'){ pinBuffer = pinBuffer.slice(0,-1); }
+      else if(pinBuffer.length<4){ pinBuffer += k; }
+      document.getElementById('pin-dots').innerHTML = pinDotsHtml();
+      if(pinBuffer.length===4){
+        setTimeout(handlePinComplete, 150);
+      }
+    }));
+  }
+
+  // Settings panel controls (only exist when unlocked)
+  const lockBtn = document.getElementById('lock-settings');
+  if(lockBtn) lockBtn.addEventListener('click', ()=>{ unlocked=false; render(); });
+
+  const changePinBtn = document.getElementById('change-pin-btn');
+  if(changePinBtn) changePinBtn.addEventListener('click', ()=>{ pinMode='setnew'; pinBuffer=''; renderChangePinModal(); });
+
+  const resetBtn = document.getElementById('reset-stats-btn');
+  if(resetBtn) resetBtn.addEventListener('click', confirmResetStats);
+
+  const addProductBtn = document.getElementById('add-product-btn');
+  if(addProductBtn) addProductBtn.addEventListener('click', openAddProductModal);
+
+  document.querySelectorAll('[data-edit-price]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const p = productById(inp.dataset.editPrice);
+      const val = parseFloat(inp.value);
+      if(!isNaN(val) && val>=0){ p.price = val; save(); toast('Price updated ✓','good'); }
+    });
+  });
+  document.querySelectorAll('[data-edit-photo]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const input = document.getElementById('file-'+el.dataset.editPhoto);
+      input.click();
+    });
+  });
+  document.querySelectorAll('[data-photo-input]').forEach(input=>{
+    input.addEventListener('change', (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        const p = productById(input.dataset.photoInput);
+        p.img = reader.result;
+        save();
+        render();
+        toast('Photo updated ✓','good');
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+  document.querySelectorAll('[data-delete-product]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      if(confirm('Remove this product from the catalog?')){
+        state.products = state.products.filter(p=>p.id!==b.dataset.deleteProduct);
+        save(); render();
+        toast('Product removed','danger');
+      }
+    });
+  });
+
+  const bankForm = document.getElementById('bank-form');
+  if(bankForm){
+    bankForm.querySelectorAll('input').forEach(inp=>{
+      inp.addEventListener('change', ()=>{
+        state.settings.bank[inp.dataset.bankField] = inp.value;
+        save();
+        toast('Bank details saved ✓','good');
+      });
+    });
+  }
+}
+
+function handlePinComplete(){
+  if(pinMode==='unlock'){
+    if(pinBuffer === state.settings.pin){
+      unlocked = true;
+      render();
+    }else{
+      toast('Incorrect PIN','danger');
+      pinBuffer='';
+      render();
+    }
+  }
+}
+
+function renderChangePinModal(){
+  let newPin='';
+  renderModal(`
+    <div class="modal-head"><h2>Set New PIN</h2><button class="close-x" id="modal-close">✕</button></div>
+    <p class="muted">Enter a new 4-digit PIN.</p>
+    <div class="pin-dots" id="np-dots">${'0000'.split('').map(()=>'<div class="pin-dot"></div>').join('')}</div>
+    <div class="keypad" id="np-keypad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-key="${n}">${n}</button>`).join('')}
+      <button class="kp-empty"></button>
+      <button data-key="0">0</button>
+      <button data-key="back">⌫</button>
+    </div>
+  `);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  const dotsFor = (buf)=>{
+    let html='';
+    for(let i=0;i<4;i++) html += `<div class="pin-dot ${i<buf.length?'filled':''}"></div>`;
+    return html;
+  };
+  document.getElementById('np-keypad').querySelectorAll('[data-key]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const k = b.dataset.key;
+      if(k==='back') newPin = newPin.slice(0,-1);
+      else if(newPin.length<4) newPin += k;
+      document.getElementById('np-dots').innerHTML = dotsFor(newPin);
+      if(newPin.length===4){
+        setTimeout(()=>{
+          state.settings.pin = newPin;
+          save();
+          closeModal();
+          toast('PIN updated ✓','good');
+        },150);
+      }
+    });
+  });
+}
+
+function confirmResetStats(){
+  if(confirm('This will permanently delete ALL sales history and statistics. This cannot be undone. Continue?')){
+    if(confirm('Are you absolutely sure? All sales data will be erased.')){
+      state.sales = [];
+      save();
+      render();
+      toast('All sales data has been reset','danger');
+    }
+  }
+}
+
+function renderSettingsPanel(){
+  const productRows = state.products.map(p=>`
+    <div class="manage-p-row">
+      <div class="mp-img" data-edit-photo="${p.id}">${p.img?`<img src="${p.img}">`:'🛢️'}</div>
+      <input type="file" accept="image/*" class="add-photo-input" id="file-${p.id}" data-photo-input="${p.id}">
+      <div class="mp-info">
+        <div class="mp-name">${p.brand} ${p.variant}</div>
+        <div class="muted">${p.sub||''}</div>
+      </div>
+      <input type="number" step="0.01" min="0" value="${p.price.toFixed(2)}" data-edit-price="${p.id}">
+      <button class="link-btn" style="color:#dc2626;margin-left:8px;" data-delete-product="${p.id}">✕</button>
+    </div>
+  `).join('');
+
+  const bank = state.settings.bank;
+
+  return `
+    <div class="section-title">Admin Settings</div>
+    <div class="settings-row">
+      <div>
+        <div class="name">Security</div>
+        <div class="desc">You are viewing protected admin settings.</div>
+      </div>
+      <button class="btn btn-outline btn-sm" id="lock-settings">🔒 Lock</button>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="name">Admin PIN</div>
+        <div class="desc">Change the 4-digit PIN used to access Settings.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="change-pin-btn">Change PIN</button>
+    </div>
+
+    <hr class="sep">
+    <div class="section-title">Manage Products</div>
+    <div class="card">${productRows}</div>
+    <button class="btn btn-outline btn-block" id="add-product-btn" style="margin-top:12px;">+ Add New Product</button>
+
+    <hr class="sep">
+    <div class="section-title">Payment / Bank Details</div>
+    <div class="card" id="bank-form">
+      <div class="field"><label>Bank Name</label><input type="text" value="${bank.bankName}" data-bank-field="bankName"></div>
+      <div class="field"><label>Account Name</label><input type="text" value="${bank.accName}" data-bank-field="accName"></div>
+      <div class="field" style="margin-bottom:0;"><label>Account Number</label><input type="text" value="${bank.accNo}" data-bank-field="accNo"></div>
+    </div>
+
+    <hr class="sep">
+    <div class="section-title">Danger Zone</div>
+    <div class="card" style="border-color:#fecaca;">
+      <div class="settings-row" style="border:none; padding-top:0;">
+        <div>
+          <div class="name">Reset Sales Statistics</div>
+          <div class="desc">Clears all sales history for a fresh start. Products &amp; prices are kept.</div>
+        </div>
+      </div>
+      <button class="btn btn-danger btn-block" id="reset-stats-btn">Reset All Sales Data</button>
+    </div>
+  `;
+}
+
+function openAddProductModal(){
+  renderModal(`
+    <div class="modal-head"><h2>Add New Product</h2><button class="close-x" id="modal-close">✕</button></div>
+    <div class="field"><label>Brand Name</label><input type="text" id="np-brand" placeholder="e.g. Periyuk Emas"></div>
+    <div class="field"><label>Description (optional)</label><input type="text" id="np-sub" placeholder="e.g. Premium Palm Oil"></div>
+    <div class="field"><label>Variant / Size</label><input type="text" id="np-variant" placeholder="e.g. 1L, 5L, Jerrican"></div>
+    <div class="field"><label>Price (RM)</label><input type="number" id="np-price" step="0.01" min="0" placeholder="0.00"></div>
+    <div class="field">
+      <label>Photo (optional)</label>
+      <input type="file" accept="image/*" id="np-photo">
+    </div>
+    <button class="btn btn-primary btn-block" id="save-new-product">Add Product</button>
+  `);
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('save-new-product').addEventListener('click', ()=>{
+    const brand = document.getElementById('np-brand').value.trim();
+    const sub = document.getElementById('np-sub').value.trim();
+    const variant = document.getElementById('np-variant').value.trim();
+    const price = parseFloat(document.getElementById('np-price').value);
+    const fileInput = document.getElementById('np-photo');
+
+    if(!brand || !variant || isNaN(price) || price<0){
+      toast('Please fill brand, variant and a valid price.','danger');
+      return;
+    }
+    const newProduct = {
+      id: 'p' + Date.now(),
+      brand, sub, variant, price, img: null
+    };
+    const finish = ()=>{
+      state.products.push(newProduct);
+      save();
+      closeModal();
+      render();
+      toast('Product added ✓','good');
+    };
+    const file = fileInput.files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = ()=>{ newProduct.img = reader.result; finish(); };
+      reader.readAsDataURL(file);
+    }else{
+      finish();
+    }
+  });
+}
+
+/* ================= HISTORY CSV BUTTON (delegated) ================= */
+document.getElementById('main').addEventListener('click', (e)=>{
+  if(e.target && e.target.id === 'download-csv'){
+    downloadCSV();
+  }
+});
+
+/* ================= INIT ================= */
+goTab('dashboard');
+</script>
+</body>
+</html>
