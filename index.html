@@ -45,7 +45,6 @@
     border:1px solid var(--border);
     border-radius:var(--radius);
     box-shadow:var(--shadow);
-    overflow:hidden;
   }
   @media (max-width:768px){
     #app {
@@ -89,6 +88,14 @@
     font-weight:bold;
     border:2px solid #fff;
     box-shadow:0 4px 6px rgba(0,0,0,0.05);
+    flex-shrink:0;
+  }
+  .brand-slogan{
+    margin:8px 0 0;
+    color:var(--gray);
+    font-size:14px;
+    font-weight:600;
+    letter-spacing:0.01em;
   }
 
   /* Premium Premium Menu/Navigation bar Styling */
@@ -129,6 +136,7 @@
   main{
     flex:1;
     padding:24px 24px 120px;
+    position:relative;
   }
 
   /* Card and Components styling */
@@ -207,10 +215,6 @@
   }
   .recent-row:last-child{border-bottom:none;}
   .recent-items{color:var(--gray); font-size:13px; margin-top:4px;}
-  .empty-state{
-    text-align:center; padding:48px 16px; color:var(--gray);
-  }
-  .empty-state .big{font-size:44px; margin-bottom:12px;}
 
   /* Product Catalog Grid layout */
   .product-grid{
@@ -269,28 +273,31 @@
   }
   .p-qty-row .qn{font-weight:800; font-size:15px; color:var(--orange-dark);}
 
-  /* Floating cart bar */
+  /* FIXED/STICKY Bottom Cart Bar Implementation */
   .cart-fab{
-    position:sticky;
-    bottom:16px;
-    left:0;right:0;
-    margin:16px auto 0;
-    max-width:720px;
-    background:var(--ink);
-    color:#fff;
-    border-radius:16px;
-    padding:16px 20px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    box-shadow:0 10px 25px rgba(0,0,0,0.2);
-    cursor:pointer;
-    border:none;
-    width:100%;
-    z-index:30;
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 48px);
+    max-width: 720px;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 16px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    cursor: pointer;
+    border: none;
+    z-index: 90;
+    transition: all 0.2s ease;
   }
-  .cart-fab .l{font-size:15px; font-weight:700;}
-  .cart-fab .r{font-size:15px; font-weight:800; color:var(--orange); display:flex; align-items:center; gap:6px;}
+  .cart-fab:hover {
+    box-shadow: 0 12px 35px rgba(0,0,0,0.4);
+    background: #0a0a0a;
+  }
 
   /* Overlay and Modals */
   .overlay{
@@ -419,7 +426,7 @@
   .hist-day{margin-bottom:20px;}
   .hist-day-title{font-size:13px; font-weight:700; color:var(--orange-dark); text-transform:uppercase; letter-spacing:.04em; margin-bottom:8px;}
   .hist-row{
-    padding:14px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; background:#white;
+    padding:14px; border:1px solid var(--border); border-radius:14px; margin-bottom:10px; background:var(--white);
   }
   .hist-row .top{display:flex; justify-content:space-between; font-weight:700; font-size:15px;}
   .hist-row .items{color:var(--gray); font-size:13px; margin-top:4px;}
@@ -437,8 +444,9 @@
   <div class="brand-header">
     <div class="brand-title-wrap">
       <div class="logo-placeholder" id="app-logo-render">🛢️</div>
-      <h1 class="brand-title">Oil Kadai</h1>
+      <h1 class="brand-title" id="app-title-render">Oil Kadai</h1>
     </div>
+    <div class="brand-slogan" id="app-slogan-render"></div>
   </div>
 
   <div class="tabbar" id="tabbar">
@@ -455,8 +463,8 @@
 <div id="toast-root"></div>
 
 <script>
-/* ================= GLOBAL CONFIGS & DICTIONARIES ================= */
-const STORE_KEY = 'oilkadai_data_v2';
+/* ================= GLOBAL CONFIGS & DATA LAYER ================= */
+const STORE_KEY = 'oilkadai_data_v3';
 
 const CURRENCIES = [
   { code: 'INR', symbol: '₹', flag: '🇮🇳' },
@@ -492,6 +500,8 @@ function defaultState(){
     sales: [],
     settings: {
       pin: '1234',
+      shopName: 'Oil Kadai',
+      shopSlogan: '',
       qrCodeImage: null,
       logoImage: null,
       bank: {
@@ -520,15 +530,16 @@ function load(){
     const parsed = JSON.parse(raw);
     if(!parsed.products || !parsed.sales || !parsed.settings) return defaultState();
     
-    // Auto-migrate standard objects if bank properties are missing
+    // Dynamic fallback field structural checks
     if(!parsed.settings.bank) parsed.settings.bank = defaultState().settings.bank;
     if(parsed.settings.bank.ifscCode === undefined) parsed.settings.bank.ifscCode = '';
     if(parsed.settings.bank.swiftCode === undefined) parsed.settings.bank.swiftCode = '';
     if(parsed.settings.bank.iban === undefined) parsed.settings.bank.iban = '';
     if(parsed.settings.qrCodeImage === undefined) parsed.settings.qrCodeImage = null;
     if(parsed.settings.logoImage === undefined) parsed.settings.logoImage = null;
+    if(parsed.settings.shopName === undefined) parsed.settings.shopName = 'Oil Kadai';
+    if(parsed.settings.shopSlogan === undefined) parsed.settings.shopSlogan = '';
     
-    // Auto-migrate products to have currency fields if missing
     parsed.products.forEach(p => {
       if(!p.currency) p.currency = 'MYR';
     });
@@ -543,13 +554,32 @@ function save(){
   localStorage.setItem(STORE_KEY, JSON.stringify(state));
 }
 
-function updateLogoRender() {
-  const container = document.getElementById('app-logo-render');
-  if(!container) return;
-  if(state.settings.logoImage) {
-    container.innerHTML = `<img src="${state.settings.logoImage}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`;
-  } else {
-    container.innerHTML = '🛢️';
+function updateHeaderRender() {
+  // Update Shop Logo Placeholder UI Graphic Component
+  const logoContainer = document.getElementById('app-logo-render');
+  if(logoContainer) {
+    if(state.settings.logoImage) {
+      logoContainer.innerHTML = `<img src="${state.settings.logoImage}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" />`;
+    } else {
+      logoContainer.innerHTML = '🛢️';
+    }
+  }
+
+  // Update Dynamic Text Properties for Brand Custom Names
+  const titleContainer = document.getElementById('app-title-render');
+  if(titleContainer) {
+    titleContainer.textContent = state.settings.shopName || 'Oil Kadai';
+  }
+
+  // Update Dynamic Slogan Logic configurations
+  const sloganContainer = document.getElementById('app-slogan-render');
+  if(sloganContainer) {
+    if(state.settings.shopSlogan && state.settings.shopSlogan.trim() !== '') {
+      sloganContainer.textContent = state.settings.shopSlogan;
+      sloganContainer.style.display = 'block';
+    } else {
+      sloganContainer.style.display = 'none';
+    }
   }
 }
 
@@ -569,7 +599,7 @@ function productById(id){
   return state.products.find(p=>p.id===id);
 }
 
-/* ================= TOASTS ================= */
+/* ================= TOAST ALERTS ================= */
 function toast(msg, type){
   const root = document.getElementById('toast-root');
   const el = document.createElement('div');
@@ -580,7 +610,7 @@ function toast(msg, type){
   setTimeout(()=>{ el.remove(); }, 2400);
 }
 
-/* ================= TAB ROUTER NAVIGATION ================= */
+/* ================= NAVIGATION CONTROLS ================= */
 document.getElementById('tabbar').addEventListener('click', (e)=>{
   const btn = e.target.closest('.tab');
   if(!btn) return;
@@ -593,9 +623,9 @@ function goTab(tab){
   render();
 }
 
-/* ================= RENDERING LAYER ================= */
+/* ================= APPLICATION ENGINE ================= */
 function render(){
-  updateLogoRender();
+  updateHeaderRender();
   const main = document.getElementById('main');
   if(activeTab==='dashboard') main.innerHTML = renderDashboard();
   else if(activeTab==='shop') main.innerHTML = renderShop();
@@ -604,24 +634,15 @@ function render(){
   attachDynamicHandlers();
 }
 
-/* ================= DASHBOARD CONTROLLER ================= */
-function isSameDay(a,b){
-  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
-}
-function isSameMonth(a,b){
-  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth();
-}
-
+/* ================= AUDITING LOGS DASHBOARD ================= */
 function renderDashboard(){
   const now = new Date();
   const todayOrders = state.sales.filter(s=>isSameDay(new Date(s.ts), now));
   const monthOrders = state.sales.filter(s=>isSameMonth(new Date(s.ts), now));
   
-  // Aggregate totals by local operational currencies securely
   const compileTotals = (ordersList) => {
     const registry = {};
     ordersList.forEach(order => {
-      // Check if order has item-level currencies structured, else fallback to historical format
       if(order.items && order.items.length > 0) {
         order.items.forEach(item => {
           const itemP = productById(item.productId);
@@ -691,11 +712,10 @@ function renderDashboard(){
   `;
 }
 
-/* ================= SHOP INTERFACE ================= */
+/* ================= SHOP CATALOG MANAGER ================= */
 function renderShop(){
   const cartCount = Object.values(cart).reduce((a,b)=>a+b,0);
   
-  // Calculate distinct sums sorted by currency group for clear checkout visual triggers
   const currencyTotals = {};
   Object.entries(cart).forEach(([id, qty]) => {
     const p = productById(id);
@@ -761,7 +781,7 @@ function attachDynamicHandlers(){
   attachSettingsHandlers();
 }
 
-/* ================= INTERACTIVE ORDER PREVIEW SUMMARY MODAL ================= */
+/* ================= INTERACTIVE ORDER PREVIEW SUMMARY ================= */
 function cartLines(){
   return Object.entries(cart).map(([id,qty])=>{
     const p = productById(id);
@@ -847,7 +867,7 @@ function refreshCartModal(){
   bindCartLineEvents();
 }
 
-/* ================= FINAL ADAPTABLE CHECKOUT & PAYMENT MODAL ================= */
+/* ================= DYNAMIC INTERNATIONAL BILLING TERMINAL ================= */
 function openPaymentModal(){
   const bank = state.settings.bank;
   
@@ -860,7 +880,6 @@ function openPaymentModal(){
     .map(([code, sum]) => fmtCustom(sum, code))
     .join(' + ') || '0.00';
 
-  // Compute dynamic custom conditional fields for intuitive banking workflows
   let customBankFieldsHtml = '';
   if(bank.ifscCode && bank.ifscCode.trim() !== '') {
     customBankFieldsHtml += `<div class="bank-row"><span class="k">IFSC Code</span><span class="v">${bank.ifscCode}</span></div>`;
@@ -872,7 +891,6 @@ function openPaymentModal(){
     customBankFieldsHtml += `<div class="bank-row"><span class="k">IBAN</span><span class="v">${bank.iban}</span></div>`;
   }
 
-  // Uploader image verification setup logic
   let qrCodeHtml = `<div class="qr-placeholder-text">No Payment QR uploaded in Admin Panel.</div>`;
   if(state.settings.qrCodeImage) {
     qrCodeHtml = `<img src="${state.settings.qrCodeImage}" alt="Payment QR Code" />`;
@@ -907,7 +925,6 @@ function completeSale(){
   const lines = cartLines();
   if(lines.length===0) return;
   
-  // Dynamic calculation matrix logic fallback tracker
   const primaryCurrency = lines[0] && lines[0].p ? lines[0].p.currency : 'MYR';
   const rawSum = lines.reduce((s,l)=> s + (l.p.price * l.qty), 0);
 
@@ -927,7 +944,7 @@ function completeSale(){
   goTab('dashboard');
 }
 
-/* ================= DIALOG MANAGER CODES ================= */
+/* ================= CORE UTILITIES LAYER ================= */
 function renderModal(html){
   document.getElementById('modal-root').innerHTML = `<div class="overlay" id="overlay"><div class="modal">${html}</div></div>`;
   document.getElementById('overlay').addEventListener('click', (e)=>{
@@ -938,7 +955,7 @@ function closeModal(){
   document.getElementById('modal-root').innerHTML = '';
 }
 
-/* ================= HISTORICAL METRICS REPORT MANAGEMENT ================= */
+/* ================= TRANSACTION AUDITING REPORTS ================= */
 function renderHistory(){
   const cutoff = Date.now() - 30*24*60*60*1000;
   const sales = state.sales.filter(s=>s.ts>=cutoff).sort((a,b)=>b.ts-a.ts);
@@ -1028,7 +1045,7 @@ function downloadCSV(){
   URL.revokeObjectURL(url);
 }
 
-/* ================= SECURE ADMINISTRATIVE CONTROLS ================= */
+/* ================= SETTINGS CONTROLS PANEL ================= */
 function renderSettings(){
   if(!unlocked){
     pinBuffer = '';
@@ -1077,7 +1094,7 @@ function attachSettingsHandlers(){
     }));
   }
 
-  // Settings control logic configurations verification setup
+  // Admin lock features
   const lockBtn = document.getElementById('lock-settings');
   if(lockBtn) lockBtn.addEventListener('click', ()=>{ unlocked=false; render(); });
 
@@ -1090,7 +1107,28 @@ function attachSettingsHandlers(){
   const addProductBtn = document.getElementById('add-product-btn');
   if(addProductBtn) addProductBtn.addEventListener('click', openAddProductModal);
 
-  // Dynamic image logo custom listeners
+  // Dynamic Identity Branding Core Input fields logic
+  const editShopNameInput = document.getElementById('settings-shop-name');
+  if(editShopNameInput) {
+    editShopNameInput.addEventListener('change', () => {
+      state.settings.shopName = editShopNameInput.value.trim() || 'Oil Kadai';
+      save();
+      updateHeaderRender();
+      toast('Shop Name customized successfully! ✓', 'good');
+    });
+  }
+
+  const editShopSloganInput = document.getElementById('settings-shop-slogan');
+  if(editShopSloganInput) {
+    editShopSloganInput.addEventListener('change', () => {
+      state.settings.shopSlogan = editShopSloganInput.value.trim();
+      save();
+      updateHeaderRender();
+      toast('Shop Slogan altered dynamically! ✓', 'good');
+    });
+  }
+
+  // Logo file readers configuration setups
   const editLogoTrigger = document.getElementById('trigger-logo-upload');
   if(editLogoTrigger) {
     editLogoTrigger.addEventListener('click', () => {
@@ -1114,7 +1152,7 @@ function attachSettingsHandlers(){
     });
   }
 
-  // Dynamic QR code custom file loaders listeners
+  // QR uploader parameters updates
   const editQrTrigger = document.getElementById('trigger-qr-upload');
   if(editQrTrigger) {
     editQrTrigger.addEventListener('click', () => {
@@ -1255,7 +1293,7 @@ function renderChangePinModal(){
 }
 
 function confirmResetStats(){
-  if(confirm('This will permanently delete ALL transactional history datasets. Product parameters are preserved. Continue?')){
+  if(confirm('This will permanently delete ALL sales history datasets. Product parameters are preserved. Continue?')){
     if(confirm('Confirm absolute purge cycle reset parameters?')){
       state.sales = [];
       save();
@@ -1296,6 +1334,17 @@ function renderSettingsPanel(){
   return `
     <div class="section-title">Admin Dashboard Settings</div>
     
+    <div class="card">
+      <div class="field">
+        <label>Custom Shop/Company Name</label>
+        <input type="text" id="settings-shop-name" value="${state.settings.shopName || ''}" placeholder="e.g. Oil Kadai">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Custom Brand Slogan</label>
+        <input type="text" id="settings-shop-slogan" value="${state.settings.shopSlogan || ''}" placeholder="e.g. Purest Quality Oils Globally">
+      </div>
+    </div>
+
     <div class="settings-row">
       <div>
         <div class="name">Shop Header Graphic Identity Logo</div>
@@ -1415,14 +1464,14 @@ function openAddProductModal(){
   });
 }
 
-/* ================= REPORT DELEGATED ACTION EMITTERS ================= */
+/* ================= REPORT ACTION RECEPTORS ================= */
 document.getElementById('main').addEventListener('click', (e)=>{
   if(e.target && e.target.id === 'download-csv'){
     downloadCSV();
   }
 });
 
-/* ================= CONTEXT INSTANTIATION INITIALIZER ================= */
+/* ================= APPLICATION CONTEXT INITIALIZATION ================= */
 goTab('dashboard');
 </script>
 </body>
