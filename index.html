@@ -523,6 +523,18 @@ let pinBuffer = '';
 let pinMode = 'unlock'; 
 let activeTab = 'dashboard';
 
+/* DATE HELPER UTILITIES TO FIX DASHBOARD BLANK ISSUE */
+function isSameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getDate() === d2.getDate();
+}
+
+function isSameMonth(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear() &&
+         d1.getMonth() === d2.getMonth();
+}
+
 function load(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
